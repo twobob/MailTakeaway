@@ -2,6 +2,11 @@
 
 A powerful .NET 8 application for browsing and searching Google Takeout email archives (MBOX format) with full HTML rendering, inline images, and attachment support. Available as both a web application and an interactive console browser.
 
+_The web client loading_ 
+<img width="1028" alt="image" src="https://github.com/user-attachments/assets/2c6816f9-53d6-4039-8c10-2de5576cc95f" />
+
+
+_The Web client frontend_
 ![Mail Takeaway Screenshot](README_SCREENIE.png)
 
 ## Features
