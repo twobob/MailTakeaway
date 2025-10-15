@@ -1,0 +1,85 @@
+@model MailTakeaway.Core.Models.ParseStatistics
+@{
+    ViewData["Title"] = "Processing Statistics";
+}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="@Url.Action("Index")" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Emails</a>
+    </div>
+
+    <h1><i class="bi bi-bar-chart-fill"></i> Processing Statistics</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Messages</h5>
+                    <h2>@Model.TotalMessages.ToString("N0")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Successfully Parsed</h5>
+                    <h2>@Model.SuccessfullyParsed.ToString("N0")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">MBOX Files</h5>
+                    <h2>@Model.MboxFilesProcessed</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Duplicates</h5>
+                    <h2>@Model.Duplicates.ToString("N0")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">Filtered Out</h5>
+                    <h2>@Model.FilteredOut.ToString("N0")</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h5 class="card-title">Parse Errors</h5>
+                    <h2>@Model.ParseErrors.ToString("N0")</h2>
+                    @if (Model.ParseErrors > 0)
+                    {
+                        <a href="@Url.Action("Errors")" class="btn btn-light btn-sm mt-2">
+                            <i class="bi bi-exclamation-triangle"></i> View Errors
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Processing Summary</h5>
+        </div>
+        <div class="card-body">
+            <ul>
+                <li><strong>Success Rate:</strong> @(Model.TotalMessages > 0 ? ((Model.SuccessfullyParsed * 100.0) / Model.TotalMessages).ToString("N2") : "0")%</li>
+                <li><strong>Duplicate Rate:</strong> @(Model.TotalMessages > 0 ? ((Model.Duplicates * 100.0) / Model.TotalMessages).ToString("N2") : "0")%</li>
+                <li><strong>Error Rate:</strong> @(Model.TotalMessages > 0 ? ((Model.ParseErrors * 100.0) / Model.TotalMessages).ToString("N2") : "0")%</li>
+            </ul>
+        </div>
+    </div>
+</div>

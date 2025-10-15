@@ -1,0 +1,171 @@
+@model MailTakeaway.Core.Models.EmailIndexEntry
+@{
+    ViewData["Title"] = "Email Details";
+}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a href="@Url.Action("Index")" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to List</a>
+        <a href="@Url.Action("Thread", new { id = Model.MessageId })" class="btn btn-info ms-2"><i class="bi bi-chat-dots"></i> View Conversation</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0"><i class="bi bi-envelope-open"></i> @Model.Subject</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <th style="width: 150px;">From:</th>
+                        <td>@Model.From</td>
+                    </tr>
+                    <tr>
+                        <th>To:</th>
+                        <td>@Model.To</td>
+                    </tr>
+                    <tr>
+                        <th>Date:</th>
+                        <td>
+                            @if (Model.UtcDate.HasValue)
+                            {
+                                @Model.UtcDate.Value.ToString("dddd, MMMM dd, yyyy HH:mm:ss")
+                                <span class="text-muted">(UTC)</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No date available</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Message ID:</th>
+                        <td><code>@Model.MessageId</code></td>
+                    </tr>
+                    <tr>
+                        <th>Source File:</th>
+                        <td><span class="badge bg-secondary">@Model.MboxSource</span></td>
+                    </tr>
+                    <tr>
+                        <th>Folder:</th>
+                        <td><span class="badge bg-info">@Model.Folder</span></td>
+                    </tr>
+                    <tr>
+                        <th>Size:</th>
+                        <td>@((Model.RawSize / 1024.0).ToString("N2")) KB (@Model.RawSize.ToString("N0") bytes)</td>
+                    </tr>
+                    @if (Model.HasAttachments)
+                    {
+                        <tr>
+                            <th>Attachments:</th>
+                            <td>
+                                <i class="bi bi-paperclip"></i> @Model.AttachmentCount attachment(s):
+                                <ul class="mt-2 list-unstyled">
+                                    @foreach (var attachment in Model.AttachmentNames)
+                                    {
+                                        var ext = System.IO.Path.GetExtension(attachment).ToLowerInvariant();
+                                        var icon = ext switch {
+                                            ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp" => "bi-file-image",
+                                            ".pdf" => "bi-file-pdf",
+                                            ".zip" or ".gz" or ".7z" or ".rar" or ".tgz" => "bi-file-zip",
+                                            ".txt" or ".cs" or ".c" or ".cpp" or ".java" => "bi-file-code",
+                                            ".mp3" or ".wav" or ".ogg" or ".m4a" => "bi-file-music",
+                                            ".doc" or ".docx" or ".odt" => "bi-file-word",
+                                            ".xls" or ".xlsx" or ".ods" => "bi-file-excel",
+                                            _ => "bi-file-earmark"
+                                        };
+                                        <li class="mb-2">
+                                            <i class="bi @icon me-1"></i>
+                                            <a href="@Url.Action("Attachment", new { messageId = Model.MessageId, fileName = attachment })" 
+                                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                                @attachment
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-envelope-open-fill"></i> Message Body</h5>
+        </div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(Model.HtmlBody))
+            {
+                <div class="email-body-html">
+                    @Html.Raw(Model.HtmlBody)
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(Model.TextBody))
+            {
+                <pre class="email-body-text" style="white-space: pre-wrap; font-family: inherit;">@Model.TextBody</pre>
+            }
+            else
+            {
+                <p class="text-muted">@Model.BodyPreview</p>
+            }
+        </div>
+    </div>
+
+    @if (Model.HasAttachments && Model.AttachmentData != null)
+    {
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-paperclip"></i> Attachments (@Model.AttachmentCount)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @foreach (var attachment in Model.AttachmentData)
+                    {
+                        var fileName = attachment.Key;
+                        var attachmentData = attachment.Value;
+                        var ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+                        var isImage = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" }.Contains(ext);
+                        
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100">
+                                @if (isImage)
+                                {
+                                    <img src="data:@attachmentData.ContentType;base64,@Convert.ToBase64String(attachmentData.Data)" 
+                                         class="card-img-top" 
+                                         alt="@fileName"
+                                         style="max-height: 300px; object-fit: contain; padding: 10px;">
+                                }
+                                <div class="card-body">
+                                    <h6 class="card-title text-truncate" title="@fileName">@fileName</h6>
+                                    <p class="card-text small text-muted">@attachmentData.ContentType</p>
+                                    <p class="card-text small">Size: @((attachmentData.Data.Length / 1024.0).ToString("N2")) KB</p>
+                                    <a href="@Url.Action("Attachment", new { messageId = Model.MessageId, fileName = fileName })" 
+                                       class="btn btn-sm btn-primary" 
+                                       target="_blank">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .email-body-html {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    .email-body-html img {
+        max-width: 100%;
+        height: auto;
+    }
+    .email-body-html table {
+        max-width: 100%;
+    }
+</style>
