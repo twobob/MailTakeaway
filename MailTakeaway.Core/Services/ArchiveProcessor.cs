@@ -44,7 +44,7 @@ public class ArchiveProcessor
         
         Console.WriteLine("Decompressing and reading tar archive...");
         
-        using var reader = TarReader.Open(gzipStream);
+        using var reader = ReaderFactory.Open(gzipStream);
         
         var mboxFiles = new List<(string Path, MemoryStream Data)>();
         
@@ -60,11 +60,8 @@ public class ArchiveProcessor
                 Console.WriteLine($"Found: {key} ({reader.Entry.Size:N0} bytes)");
                 
                 var memStream = new MemoryStream();
-                using (var entryStream = reader.OpenEntryStream())
-                {
-                    await entryStream.CopyToAsync(memStream, cancellationToken);
-                }
-                memStream.Position = 0;
+                reader.WriteEntryTo(memStream);
+                memStream.Seek(0, SeekOrigin.Begin);
                 mboxFiles.Add((key, memStream));
             }
         }

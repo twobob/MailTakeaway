@@ -98,9 +98,10 @@
         <div class="card-body">
             @if (!string.IsNullOrEmpty(Model.HtmlBody))
             {
-                <div class="email-body-html">
-                    @Html.Raw(Model.HtmlBody)
-                </div>
+                <iframe srcdoc="@Model.HtmlBody.Replace("\"", "&quot;")" 
+                        style="width: 100%; border: none; min-height: 300px;" 
+                        onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';">
+                </iframe>
             }
             else if (!string.IsNullOrEmpty(Model.TextBody))
             {

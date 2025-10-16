@@ -223,6 +223,11 @@ public class EmailIndexService
                 e.BodyPreview.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
         }
 
+        if (!string.IsNullOrWhiteSpace(fromFilter))
+        {
+            query = query.Where(e => e.From.Contains(fromFilter, StringComparison.OrdinalIgnoreCase));
+        }
+
         if (!string.IsNullOrWhiteSpace(folderFilter))
         {
             query = query.Where(e => e.Folder.Contains(folderFilter, StringComparison.OrdinalIgnoreCase));

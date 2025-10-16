@@ -61,9 +61,10 @@
                 
                 @if (!string.IsNullOrEmpty(email.HtmlBody))
                 {
-                    <div class="email-body-html">
-                        @Html.Raw(email.HtmlBody)
-                    </div>
+                    <iframe srcdoc="@email.HtmlBody.Replace("\"", "&quot;")" 
+                            style="width: 100%; border: none; min-height: 300px;" 
+                            onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';">
+                    </iframe>
                 }
                 else if (!string.IsNullOrEmpty(email.TextBody))
                 {

@@ -241,39 +241,49 @@ public partial class MboxParser
     private string? ProcessHtmlBodyWithInlineImages(MimeMessage message, List<MimeEntity> attachments)
     {
         var htmlBody = message.HtmlBody;
-        if (string.IsNullOrEmpty(htmlBody) || !attachments.Any())
+        if (string.IsNullOrEmpty(htmlBody))
             return htmlBody;
 
         // Build a map of Content-ID to attachment data
         var cidMap = new Dictionary<string, (string contentType, byte[] data)>();
         
-        foreach (var attachment in attachments)
+        if (attachments.Any())
         {
-            if (attachment is MimePart mimePart && mimePart.ContentId != null)
+            foreach (var attachment in attachments)
             {
-                try
+                if (attachment is MimePart mimePart && mimePart.ContentId != null)
                 {
-                    using var memory = new MemoryStream();
-                    mimePart.Content.DecodeTo(memory);
-                    var contentId = mimePart.ContentId.Trim('<', '>');
-                    var contentType = mimePart.ContentType?.MimeType ?? "application/octet-stream";
-                    cidMap[contentId] = (contentType, memory.ToArray());
+                    try
+                    {
+                        using var memory = new MemoryStream();
+                        mimePart.Content.DecodeTo(memory);
+                        var contentId = mimePart.ContentId.Trim('<', '>');
+                        var contentType = mimePart.ContentType?.MimeType ?? "application/octet-stream";
+                        cidMap[contentId] = (contentType, memory.ToArray());
+                    }
+                    catch (Exception ex)
+                    {
+                        LogVerbose($"Failed to process inline image {mimePart.ContentId}: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    LogVerbose($"Failed to process inline image {mimePart.ContentId}: {ex.Message}");
-                }
+            }
+
+            // Replace cid: references with data URIs
+            foreach (var (contentId, (contentType, data)) in cidMap)
+            {
+                var cidReference = $"cid:{contentId}";
+                var base64Data = Convert.ToBase64String(data);
+                var dataUri = $"data:{contentType};base64,{base64Data}";
+                htmlBody = htmlBody.Replace(cidReference, dataUri);
             }
         }
 
-        // Replace cid: references with data URIs
-        foreach (var (contentId, (contentType, data)) in cidMap)
-        {
-            var cidReference = $"cid:{contentId}";
-            var base64Data = Convert.ToBase64String(data);
-            var dataUri = $"data:{contentType};base64,{base64Data}";
-            htmlBody = htmlBody.Replace(cidReference, dataUri);
-        }
+        // Strip external tracking images and resources - SECURITY
+        htmlBody = System.Text.RegularExpressions.Regex.Replace(
+            htmlBody,
+            @"<img[^>]+src=[""'](?!data:)[^""']+[""'][^>]*>",
+            "",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
         return htmlBody;
     }

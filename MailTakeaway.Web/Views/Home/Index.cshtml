@@ -116,6 +116,7 @@
                     <div class="col-md-2">
                         <label class="form-label">Results Per Page</label>
                         <select class="form-select" name="pageSize">
+                            <option value="10" selected="@(Model.PageSize == 10)">10</option>
                             <option value="20" selected="@(Model.PageSize == 20)">20</option>
                             <option value="50" selected="@(Model.PageSize == 50)">50</option>
                             <option value="100" selected="@(Model.PageSize == 100)">100</option>
@@ -192,9 +193,10 @@
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(email.HtmlBody))
                     {
-                        <div class="email-body-html">
-                            @Html.Raw(email.HtmlBody)
-                        </div>
+                        <iframe srcdoc="@email.HtmlBody.Replace("\"", "&quot;")" 
+                                style="width: 100%; border: none; min-height: 300px;" 
+                                onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';">
+                        </iframe>
                     }
                     else if (!string.IsNullOrEmpty(email.TextBody))
                     {

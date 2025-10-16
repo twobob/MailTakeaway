@@ -27,8 +27,8 @@ public class HomeController : Controller
         bool? hasAttachments,
         string? attachmentType,
         int page = 1,
-        int pageSize = 50,
-        bool threadView = true)
+        int pageSize = 10,
+        bool threadView = false)
     {
         if (!_indexService.IsInitialized)
         {

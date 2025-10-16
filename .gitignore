@@ -40,9 +40,11 @@ email_index_cache.json
 
 # Published executables and release builds
 **/publish/
+**/publish-release/
 
 # Test archives (user-specific)
 *.tgz
+*.zip
 *.tar.gz
 MailDump.*
 
